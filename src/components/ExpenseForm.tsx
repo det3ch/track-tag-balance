@@ -191,11 +191,16 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
               <button
                 key={bank.name}
                 type="button"
-                onClick={() => setFormData(prev => ({ 
-                  ...prev, 
-                  bank: bank.name,
-                  bankColor: bank.color
-                }))}
+                onClick={() => 
+                  {
+                    const selectedBank = bankPresets.find(p => p.name === bank.name);
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      bank: bank.name,
+                      bankColor: selectedBank.color
+                    }))
+                  }
+                }
                 style={{ 
                   backgroundColor: bank.color,
                   color: bank.textColor
