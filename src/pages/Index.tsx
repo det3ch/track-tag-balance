@@ -6,6 +6,7 @@ import ExpenseForm from '@/components/ExpenseForm';
 import ExpenseCharts from '@/components/ExpenseCharts';
 import ExpenseMetrics from '@/components/ExpenseMetrics';
 import ExpenseList from '@/components/ExpenseList';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export interface Expense {
   id: string;
@@ -14,6 +15,8 @@ export interface Expense {
   tag: string;
   tagColor: string;
   tagIcon: string;
+  bank: string;
+  bankColor: string;
   value: number;
   recurring: boolean;
   installments: number;
@@ -83,18 +86,19 @@ const Index = () => {
   }, [expenses]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-background p-4">
+      <ThemeToggle />
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Finance Control</h1>
-          <p className="text-gray-600">Manage your expenses and track your financial goals</p>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Finance Control</h1>
+          <p className="text-muted-foreground">Manage your expenses and track your financial goals</p>
         </div>
 
         {/* Top Section - Form and Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Block - Expense Form */}
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
+          <Card className="shadow-lg border bg-card">
+            <CardHeader className="bg-primary text-primary-foreground rounded-t-lg">
               <CardTitle className="text-xl font-semibold">Save Expense</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
@@ -103,8 +107,8 @@ const Index = () => {
           </Card>
 
           {/* Right Block - Charts and Metrics */}
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-t-lg">
+          <Card className="shadow-lg border bg-card">
+            <CardHeader className="bg-secondary text-secondary-foreground rounded-t-lg">
               <CardTitle className="text-xl font-semibold">Financial Overview</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
@@ -135,8 +139,8 @@ const Index = () => {
         </div>
 
         {/* Bottom Section - Expense List */}
-        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-lg">
+        <Card className="shadow-lg border bg-card">
+          <CardHeader className="bg-accent text-accent-foreground rounded-t-lg">
             <CardTitle className="text-xl font-semibold">Expense Records</CardTitle>
           </CardHeader>
           <CardContent className="p-6">

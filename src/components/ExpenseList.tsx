@@ -56,7 +56,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpense }) 
 
   if (expenses.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-muted-foreground">
         <p>No expenses recorded yet. Add your first expense above!</p>
       </div>
     );
@@ -64,7 +64,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpense }) 
 
   return (
     <div className="space-y-4">
-      <div className="text-sm text-gray-600 mb-4">
+      <div className="text-sm text-muted-foreground mb-4">
         Total: {expenses.length} expenses | Total Amount: ${expenses.reduce((sum, exp) => sum + exp.value, 0).toFixed(2)}
       </div>
       
@@ -73,7 +73,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpense }) 
           <TableHeader>
             <TableRow>
               <TableHead 
-                className="cursor-pointer hover:bg-gray-50 select-none"
+                className="cursor-pointer hover:bg-muted select-none"
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center gap-2">
@@ -82,7 +82,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpense }) 
                 </div>
               </TableHead>
               <TableHead 
-                className="cursor-pointer hover:bg-gray-50 select-none"
+                className="cursor-pointer hover:bg-muted select-none"
                 onClick={() => handleSort('date')}
               >
                 <div className="flex items-center gap-2">
@@ -91,7 +91,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpense }) 
                 </div>
               </TableHead>
               <TableHead 
-                className="cursor-pointer hover:bg-gray-50 select-none"
+                className="cursor-pointer hover:bg-muted select-none"
                 onClick={() => handleSort('tag')}
               >
                 <div className="flex items-center gap-2">
@@ -99,8 +99,9 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpense }) 
                   <SortIcon field="tag" />
                 </div>
               </TableHead>
+              <TableHead>Bank</TableHead>
               <TableHead 
-                className="cursor-pointer hover:bg-gray-50 select-none text-right"
+                className="cursor-pointer hover:bg-muted select-none text-right"
                 onClick={() => handleSort('value')}
               >
                 <div className="flex items-center gap-2 justify-end">
@@ -114,7 +115,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpense }) 
           </TableHeader>
           <TableBody>
             {sortedExpenses.map((expense) => (
-              <TableRow key={expense.id} className="hover:bg-gray-50">
+              <TableRow key={expense.id} className="hover:bg-muted">
                 <TableCell className="font-medium">{expense.name}</TableCell>
                 <TableCell>{expense.date.toLocaleDateString()}</TableCell>
                 <TableCell>
@@ -129,14 +130,25 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpense }) 
                     {expense.tag}
                   </Badge>
                 </TableCell>
+                <TableCell>
+                  <Badge 
+                    style={{ 
+                      backgroundColor: expense.bankColor,
+                      color: 'white'
+                    }}
+                    className="flex items-center gap-1 w-fit"
+                  >
+                    {expense.bank}
+                  </Badge>
+                </TableCell>
                 <TableCell className="text-right font-semibold">
                   ${expense.value.toFixed(2)}
                 </TableCell>
                 <TableCell>
-                  <div className="text-xs text-gray-500 space-y-1">
+                  <div className="text-xs text-muted-foreground space-y-1">
                     {expense.recurring && (
                       <div className="flex items-center gap-1">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                        <span className="w-2 h-2 bg-primary rounded-full"></span>
                         Recurring ({expense.installments}x)
                       </div>
                     )}
@@ -148,7 +160,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpense }) 
                     variant="outline"
                     size="sm"
                     onClick={() => onDeleteExpense(expense.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

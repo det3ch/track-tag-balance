@@ -14,6 +14,13 @@ interface ExpenseFormProps {
   onAddExpense: (expense: Omit<Expense, 'id' | 'createdAt'>) => void;
 }
 
+const bankPresets = [
+  { name: 'BTG', color: 'hsl(221, 83%, 53%)', textColor: 'white' },
+  { name: 'Nubank', color: 'hsl(271, 81%, 56%)', textColor: 'white' },
+  { name: 'Itaú', color: 'hsl(221, 83%, 53%)', textColor: 'hsl(25, 95%, 53%)' },
+  { name: 'Inter', color: 'hsl(25, 95%, 53%)', textColor: 'white' }
+];
+
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -21,6 +28,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
     tag: '',
     tagColor: '#3b82f6',
     tagIcon: '💰',
+    bank: '',
+    bankColor: '#3b82f6',
     value: '',
     recurring: false,
     installments: 1
@@ -36,6 +45,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
       tag: formData.tag,
       tagColor: formData.tagColor,
       tagIcon: formData.tagIcon,
+      bank: formData.bank,
+      bankColor: formData.bankColor,
       value: parseFloat(formData.value.replace(/[^0-9.-]+/g, '')),
       recurring: formData.recurring,
       installments: formData.installments
@@ -48,6 +59,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
       tag: '',
       tagColor: '#3b82f6',
       tagIcon: '💰',
+      bank: '',
+      bankColor: '#3b82f6',
       value: '',
       recurring: false,
       installments: 1
@@ -150,11 +163,61 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
                 key={icon}
                 type="button"
                 onClick={() => setFormData(prev => ({ ...prev, tagIcon: icon }))}
-                className="p-1 hover:bg-gray-200 rounded text-lg"
+                className="p-1 hover:bg-muted rounded text-lg"
               >
                 {icon}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="bank">Bank</Label>
+          <Input
+            id="bank"
+            value={formData.bank}
+            onChange={(e) => setFormData(prev => ({ ...prev, bank: e.target.value }))}
+            placeholder="e.g., BTG, Nubank"
+            required
+          />
+          <div className="flex flex-wrap gap-1 mt-2">
+            {bankPresets.map(bank => (
+              <button
+                key={bank.name}
+                type="button"
+                onClick={() => setFormData(prev => ({ 
+                  ...prev, 
+                  bank: bank.name,
+                  bankColor: bank.color
+                }))}
+                style={{ 
+                  backgroundColor: bank.color,
+                  color: bank.textColor
+                }}
+                className="px-2 py-1 rounded text-sm font-medium"
+              >
+                {bank.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="bankColor">Bank Color</Label>
+          <div className="flex gap-2">
+            <input
+              type="color"
+              id="bankColor"
+              value={formData.bankColor}
+              onChange={(e) => setFormData(prev => ({ ...prev, bankColor: e.target.value }))}
+              className="w-12 h-10 rounded border"
+            />
+            <Input
+              value={formData.bankColor}
+              onChange={(e) => setFormData(prev => ({ ...prev, bankColor: e.target.value }))}
+              placeholder="#3b82f6"
+              className="flex-1"
+            />
           </div>
         </div>
 
@@ -193,7 +256,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
         )}
       </div>
 
-      <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+      <Button type="submit" className="w-full">
         Save Expense
       </Button>
     </form>
