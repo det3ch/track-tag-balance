@@ -68,12 +68,18 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
   };
 
   const formatCurrency = (value: string) => {
+    // Only format when the input loses focus, not during typing
+    return value;
+  };
+
+  const handleValueBlur = (value: string) => {
     const number = value.replace(/[^0-9.-]+/g, '');
     if (number === '') return '';
-    return new Intl.NumberFormat('en-US', {
+    const formatted = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
     }).format(parseFloat(number));
+    setFormData(prev => ({ ...prev, value: formatted }));
   };
 
   const commonIcons = ['💰', '🏠', '🚗', '🍔', '🎮', '👕', '⚡', '📱', '🏥', '🎓'];
@@ -226,7 +232,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
           <Input
             id="value"
             value={formData.value}
-            onChange={(e) => setFormData(prev => ({ ...prev, value: formatCurrency(e.target.value) }))}
+            onChange={(e) => setFormData(prev => ({ ...prev, value: e.target.value }))}
+            onBlur={(e) => handleValueBlur(e.target.value)}
             placeholder="$0.00"
             required
           />

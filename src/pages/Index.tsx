@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ExpenseForm from '@/components/ExpenseForm';
 import ExpenseCharts from '@/components/ExpenseCharts';
 import ExpenseMetrics from '@/components/ExpenseMetrics';
-import ExpenseList from '@/components/ExpenseList';
+import EditableExpenseList from '@/components/EditableExpenseList';
 import ThemeToggle from '@/components/ThemeToggle';
 
 export interface Expense {
@@ -56,6 +56,28 @@ const Index = () => {
 
   const deleteExpense = (id: string) => {
     setExpenses(prev => prev.filter(expense => expense.id !== id));
+  };
+
+  const updateExpense = (id: string, updates: Partial<Expense>, applyToRecurring?: boolean) => {
+    setExpenses(prev => {
+      if (applyToRecurring) {
+        const expense = prev.find(e => e.id === id);
+        if (expense && expense.recurring) {
+          // Find all related recurring expenses by matching name pattern
+          const baseName = expense.name.includes('(') ? expense.name.split(' (')[0] : expense.name;
+          return prev.map(exp => {
+            const expBaseName = exp.name.includes('(') ? exp.name.split(' (')[0] : exp.name;
+            if (expBaseName === baseName && exp.recurring) {
+              return { ...exp, ...updates };
+            }
+            return exp;
+          });
+        }
+      }
+      return prev.map(expense => 
+        expense.id === id ? { ...expense, ...updates } : expense
+      );
+    });
   };
 
   const monthlyData = useMemo(() => {
@@ -144,7 +166,11 @@ const Index = () => {
             <CardTitle className="text-xl font-semibold">Expense Records</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <ExpenseList expenses={expenses} onDeleteExpense={deleteExpense} />
+            <EditableExpenseList 
+              expenses={expenses} 
+              onDeleteExpense={deleteExpense}
+              onUpdateExpense={updateExpense}
+            />
           </CardContent>
         </Card>
       </div>
