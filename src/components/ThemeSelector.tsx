@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -15,14 +15,29 @@ const themes = [
 ];
 
 const ThemeSelector = () => {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   const currentTheme = themes.find(t => t.value === theme) || themes[0];
+
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme);
+    // Force a re-render by updating a data attribute
+    setTimeout(() => {
+      document.documentElement.setAttribute('data-theme-updated', Date.now().toString());
+    }, 100);
+  };
+
+  // Ensure theme is properly applied on mount
+  useEffect(() => {
+    if (theme && theme !== resolvedTheme) {
+      document.documentElement.className = theme;
+    }
+  }, [theme, resolvedTheme]);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2">
+        <Button variant="light-blue" className="flex items-center gap-2">
           <Palette className="h-4 w-4" />
           {currentTheme.name}
         </Button>
@@ -31,7 +46,7 @@ const ThemeSelector = () => {
         {themes.map((themeOption) => (
           <DropdownMenuItem
             key={themeOption.value}
-            onClick={() => setTheme(themeOption.value)}
+            onClick={() => handleThemeChange(themeOption.value)}
             className="flex flex-col items-start gap-1 p-3"
           >
             <div className="font-medium">{themeOption.name}</div>
