@@ -6,7 +6,8 @@ import ExpenseForm from '@/components/ExpenseForm';
 import ExpenseCharts from '@/components/ExpenseCharts';
 import ExpenseMetrics from '@/components/ExpenseMetrics';
 import EditableExpenseList from '@/components/EditableExpenseList';
-import ThemeToggle from '@/components/ThemeToggle';
+import ImportExportButtons from '@/components/ImportExportButtons';
+import ThemeSelector from '@/components/ThemeSelector';
 
 export interface Expense {
   id: string;
@@ -80,6 +81,10 @@ const Index = () => {
     });
   };
 
+  const handleImportExpenses = (importedExpenses: Expense[]) => {
+    setExpenses(prev => [...prev, ...importedExpenses]);
+  };
+
   const monthlyData = useMemo(() => {
     const monthlyTotals: { [key: string]: number } = {};
     expenses.forEach(expense => {
@@ -109,7 +114,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background p-4">
-      <ThemeToggle />
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <ImportExportButtons 
+          expenses={expenses} 
+          onImportExpenses={handleImportExpenses}
+        />
+        <ThemeSelector />
+      </div>
+      
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2">Finance Control</h1>
@@ -120,7 +132,7 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Block - Expense Form */}
           <Card className="shadow-lg border bg-card">
-            <CardHeader className="bg-primary text-primary-foreground rounded-t-lg">
+            <CardHeader className="bg-primary text-white rounded-t-lg">
               <CardTitle className="text-xl font-semibold">Save Expense</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
