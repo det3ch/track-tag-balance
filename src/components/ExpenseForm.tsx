@@ -16,10 +16,10 @@ interface ExpenseFormProps {
 }
 
 const bankPresets = [
-  { name: 'BTG', color: 'hsl(221, 83%, 53%)', textColor: 'white' },
-  { name: 'Nubank', color: 'hsl(271, 81%, 56%)', textColor: 'white' },
-  { name: 'Itaú', color: 'hsl(221, 83%, 43%)', textColor: 'hsl(25, 95%, 53%)' },
-  { name: 'Inter', color: 'hsl(25, 95%, 53%)', textColor: 'white' }
+  { name: 'BTG', color: '221 83% 53%', textColor: 'white' },
+  { name: 'Nubank', color: '271 81% 56%', textColor: 'white' },
+  { name: 'Itaú', color: '214 100% 20%', textColor: 'hsl(25, 95%, 53%)' },
+  { name: 'Inter', color: '25 95% 53%', textColor: 'white' }
 ];
 
 const defaultCategories = [
@@ -137,7 +137,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
       setFormData(prev => ({ 
         ...prev, 
         bank: bankName,
-        bankColor: selectedBank.color
+        bankColor: `hsl(${selectedBank.color})`
       }));
     }
   };
@@ -319,7 +319,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
                 type="button"
                 onClick={() => handleBankSelect(bank.name)}
                 style={{ 
-                  backgroundColor: bank.color,
+                  backgroundColor: `hsl(${bank.color})`,
                   color: bank.textColor
                 }}
                 className="px-2 py-1 rounded text-sm font-medium"

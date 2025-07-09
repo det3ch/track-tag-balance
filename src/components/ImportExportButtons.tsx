@@ -140,7 +140,7 @@ const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({ expenses, onI
       />
       
       <Button
-        variant="outline"
+        variant="light-blue"
         onClick={() => document.getElementById('import-file')?.click()}
         className="flex items-center gap-2"
       >
@@ -150,7 +150,7 @@ const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({ expenses, onI
 
       <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="light-blue" className="flex items-center gap-2">
             <Download className="h-4 w-4" />
             Export
           </Button>

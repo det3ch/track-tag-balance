@@ -6,8 +6,7 @@ import ExpenseForm from '@/components/ExpenseForm';
 import ExpenseCharts from '@/components/ExpenseCharts';
 import ExpenseMetrics from '@/components/ExpenseMetrics';
 import EditableExpenseList from '@/components/EditableExpenseList';
-import ImportExportButtons from '@/components/ImportExportButtons';
-import ThemeSelector from '@/components/ThemeSelector';
+import Navbar from '@/components/Navbar';
 
 export interface Expense {
   id: string;
@@ -113,18 +112,14 @@ const Index = () => {
   }, [expenses]);
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-        <ImportExportButtons 
-          expenses={expenses} 
-          onImportExpenses={handleImportExpenses}
-        />
-        <ThemeSelector />
-      </div>
+    <div className="min-h-screen bg-background">
+      <Navbar 
+        expenses={expenses} 
+        onImportExpenses={handleImportExpenses}
+      />
       
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto p-4 space-y-6">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Finance Control</h1>
           <p className="text-muted-foreground">Manage your expenses and track your financial goals</p>
         </div>
 

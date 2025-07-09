@@ -256,7 +256,7 @@ const EditableExpenseList: React.FC<EditableExpenseListProps> = ({ expenses, onD
                         backgroundColor: expense.bankColor,
                         color: 'white'
                       }}
-                      className="flex items-center gap-1 w-fit"
+                      className="flex items-center gap-1 w-fit text-white"
                     >
                       {expense.bank}
                     </Badge>
