@@ -110,7 +110,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
         <Checkbox
           id="recurring"
           checked={recurring}
-          onCheckedChange={setRecurring}
+          onCheckedChange={(checked) => setRecurring(checked === true)}
         />
         <Label htmlFor="recurring">Recurring Expense</Label>
       </div>
