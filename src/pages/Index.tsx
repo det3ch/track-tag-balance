@@ -6,6 +6,7 @@ import ExpenseForm from '@/components/ExpenseForm';
 import ExpenseCharts from '@/components/ExpenseCharts';
 import ExpenseMetrics from '@/components/ExpenseMetrics';
 import EditableExpenseList from '@/components/EditableExpenseList';
+import ExpenseFiltersComponent, { ExpenseFilters } from '@/components/ExpenseFilters';
 import Navbar from '@/components/Navbar';
 
 export interface Expense {
@@ -41,6 +42,16 @@ const Index = () => {
   const [goalAmount, setGoalAmount] = useState<number>(() => {
     const saved = localStorage.getItem('goalAmount');
     return saved ? Number(saved) : 5000;
+  });
+
+  const [filters, setFilters] = useState<ExpenseFilters>({
+    name: '',
+    dateFrom: null,
+    dateTo: null,
+    minValue: '',
+    maxValue: '',
+    bank: '',
+    category: ''
   });
 
   const addExpense = (expense: Omit<Expense, 'id' | 'createdAt' | 'currentInstallment' | 'recurringGroup'>) => {
@@ -210,9 +221,47 @@ const Index = () => {
     localStorage.setItem('goalAmount', newGoal.toString());
   };
 
+  // Filter expenses based on filter criteria
+  const filteredExpenses = useMemo(() => {
+    return expenses.filter(expense => {
+      // Name filter
+      if (filters.name && !expense.name.toLowerCase().includes(filters.name.toLowerCase())) {
+        return false;
+      }
+
+      // Date range filter
+      if (filters.dateFrom && expense.date < filters.dateFrom) {
+        return false;
+      }
+      if (filters.dateTo && expense.date > filters.dateTo) {
+        return false;
+      }
+
+      // Value range filter
+      if (filters.minValue && expense.value < parseFloat(filters.minValue)) {
+        return false;
+      }
+      if (filters.maxValue && expense.value > parseFloat(filters.maxValue)) {
+        return false;
+      }
+
+      // Bank filter
+      if (filters.bank && expense.bank !== filters.bank) {
+        return false;
+      }
+
+      // Category filter
+      if (filters.category && expense.tag !== filters.category) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [expenses, filters]);
+
   const monthlyData = useMemo(() => {
     const monthlyTotals: { [key: string]: number } = {};
-    expenses.forEach(expense => {
+    filteredExpenses.forEach(expense => {
       const monthKey = expense.date.toLocaleDateString('en-US', { 
         year: 'numeric', 
         month: 'short' 
@@ -220,11 +269,11 @@ const Index = () => {
       monthlyTotals[monthKey] = (monthlyTotals[monthKey] || 0) + expense.value;
     });
     return monthlyTotals;
-  }, [expenses]);
+  }, [filteredExpenses]);
 
   const categoryData = useMemo(() => {
     const categoryTotals: { [key: string]: { total: number; color: string; icon: string } } = {};
-    expenses.forEach(expense => {
+    filteredExpenses.forEach(expense => {
       if (!categoryTotals[expense.tag]) {
         categoryTotals[expense.tag] = {
           total: 0,
@@ -235,7 +284,7 @@ const Index = () => {
       categoryTotals[expense.tag].total += expense.value;
     });
     return categoryTotals;
-  }, [expenses]);
+  }, [filteredExpenses]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -281,7 +330,7 @@ const Index = () => {
                 </TabsContent>
                 <TabsContent value="metrics">
                   <ExpenseMetrics 
-                    expenses={expenses}
+                    expenses={filteredExpenses}
                     monthlyData={monthlyData}
                     categoryData={categoryData}
                     goalAmount={goalAmount}
@@ -293,14 +342,22 @@ const Index = () => {
           </Card>
         </div>
 
-        {/* Bottom Section - Expense List */}
+        {/* Bottom Section - Filters and Expense List */}
+        <ExpenseFiltersComponent
+          filters={filters}
+          onFiltersChange={setFilters}
+          expenses={expenses}
+        />
+        
         <Card className="shadow-lg border bg-card">
           <CardHeader className="bg-accent text-accent-foreground rounded-t-lg">
-            <CardTitle className="text-xl font-semibold">Expense Records</CardTitle>
+            <CardTitle className="text-xl font-semibold">
+              Expense Records ({filteredExpenses.length} of {expenses.length})
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <EditableExpenseList 
-              expenses={expenses} 
+              expenses={filteredExpenses} 
               onDeleteExpense={deleteExpense}
               onUpdateExpense={updateExpense}
             />

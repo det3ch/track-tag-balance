@@ -73,7 +73,7 @@ const ExpenseCharts: React.FC<ExpenseChartsProps> = ({ monthlyData, categoryData
             <XAxis dataKey="month" />
             <YAxis />
             <Tooltip 
-              formatter={(value: number, name: string) => [`$${value.toFixed(2)}`, name === 'actual' ? 'Actual' : 'Goal']}
+              formatter={(value: number, name: string) => [`$${value.toFixed(2)}`, name === 'actual' ? 'Actual Expenses' : 'Goal']}
             />
             <Legend />
             <Bar dataKey="actual" fill="#3b82f6" name="Actual Expenses" />
