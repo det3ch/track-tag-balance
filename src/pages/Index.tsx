@@ -96,10 +96,39 @@ const Index = () => {
       if (applyToRecurring) {
         const expense = prev.find(e => e.id === id);
         if (expense && expense.recurring && expense.recurringGroup) {
-          // Handle installment count changes
-          if (updates.installments && updates.installments !== expense.installments) {
-            const groupExpenses = prev.filter(e => e.recurringGroup === expense.recurringGroup);
-            const sortedGroup = groupExpenses.sort((a, b) => a.currentInstallment - b.currentInstallment);
+          const groupExpenses = prev.filter(e => e.recurringGroup === expense.recurringGroup);
+          const sortedGroup = groupExpenses.sort((a, b) => a.currentInstallment - b.currentInstallment);
+          
+          // Handle currentInstallment changes - resequence from that point
+          if (updates.currentInstallment && updates.currentInstallment !== expense.currentInstallment) {
+            const editedExpense = sortedGroup.find(e => e.id === id);
+            if (editedExpense) {
+              const editedIndex = sortedGroup.findIndex(e => e.id === id);
+              const newSequenceStart = updates.currentInstallment;
+              
+              updated = prev.map(exp => {
+                if (exp.recurringGroup === expense.recurringGroup) {
+                  const groupIndex = sortedGroup.findIndex(e => e.id === exp.id);
+                  if (groupIndex >= editedIndex) {
+                    // Resequence from the edited installment onwards
+                    const newInstallmentNumber = newSequenceStart + (groupIndex - editedIndex);
+                    return { ...exp, ...updates, currentInstallment: newInstallmentNumber };
+                  }
+                  return { ...exp, ...updates };
+                }
+                return exp;
+              });
+            } else {
+              updated = prev.map(exp => 
+                exp.recurringGroup === expense.recurringGroup 
+                  ? { ...exp, ...updates }
+                  : exp
+              );
+            }
+          }
+          // Handle installments total changes - create new installments if last item
+          else if (updates.installments && updates.installments !== expense.installments) {
+            const isLastInstallment = expense.currentInstallment === expense.installments;
             
             if (updates.installments < expense.installments) {
               // Remove excess installments
@@ -112,16 +141,17 @@ const Index = () => {
                   }
                   return exp;
                 });
-            } else {
-              // Add new installments
+            } else if (isLastInstallment && updates.installments > expense.installments) {
+              // Add new installments for future months
               const newInstallments = [];
+              const lastExpense = sortedGroup[sortedGroup.length - 1];
+              
               for (let i = expense.installments; i < updates.installments; i++) {
-                const baseExpense = sortedGroup[0];
-                const newDate = new Date(baseExpense.date);
-                newDate.setMonth(newDate.getMonth() + i);
+                const newDate = new Date(lastExpense.date);
+                newDate.setMonth(newDate.getMonth() + (i - lastExpense.currentInstallment + 1));
                 
                 newInstallments.push({
-                  ...baseExpense,
+                  ...lastExpense,
                   ...updates,
                   id: `${expense.recurringGroup}-${i}`,
                   date: newDate,
@@ -129,14 +159,22 @@ const Index = () => {
                   installments: updates.installments
                 });
               }
+              
               updated = prev.map(exp => 
                 exp.recurringGroup === expense.recurringGroup 
                   ? { ...exp, ...updates, installments: updates.installments }
                   : exp
               ).concat(newInstallments);
+            } else {
+              // Apply updates to all in group
+              updated = prev.map(exp => 
+                exp.recurringGroup === expense.recurringGroup 
+                  ? { ...exp, ...updates }
+                  : exp
+              );
             }
           } else {
-            // Apply updates to all in group
+            // Apply other updates to all in group
             updated = prev.map(exp => 
               exp.recurringGroup === expense.recurringGroup 
                 ? { ...exp, ...updates }
