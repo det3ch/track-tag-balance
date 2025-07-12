@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -16,15 +16,18 @@ const themes = [
 
 const ThemeSelector = () => {
   const { theme, setTheme, resolvedTheme } = useTheme();
+  const [forceUpdate, setForceUpdate] = useState(0);
 
   const currentTheme = themes.find(t => t.value === theme) || themes[0];
 
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme);
-    // Force a re-render by updating a data attribute
+    // Force immediate UI reload
     setTimeout(() => {
-      document.documentElement.setAttribute('data-theme-updated', Date.now().toString());
-    }, 100);
+      setForceUpdate(prev => prev + 1);
+      // Also force a global re-render
+      window.dispatchEvent(new CustomEvent('theme-changed'));
+    }, 50);
   };
 
   // Ensure theme is properly applied on mount
@@ -32,7 +35,7 @@ const ThemeSelector = () => {
     if (theme && theme !== resolvedTheme) {
       document.documentElement.className = theme;
     }
-  }, [theme, resolvedTheme]);
+  }, [theme, resolvedTheme, forceUpdate]);
 
   return (
     <DropdownMenu>

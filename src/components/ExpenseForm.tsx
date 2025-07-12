@@ -40,7 +40,9 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
       bankColor,
       value: parseFloat(value),
       recurring,
-      installments: recurring ? installments : 1
+      installments: recurring ? installments : 1,
+      currentInstallment: 1,
+      recurringGroup: ''
     };
 
     onAddExpense(expense);

@@ -20,6 +20,7 @@ const EditableExpenseRow: React.FC<EditableExpenseRowProps> = ({
 }) => {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [editedExpense, setEditedExpense] = useState<Expense>(expense);
   const [showRecurringDialog, setShowRecurringDialog] = useState(false);
   const [pendingUpdate, setPendingUpdate] = useState<Partial<Expense> | null>(null);
 
@@ -34,19 +35,24 @@ const EditableExpenseRow: React.FC<EditableExpenseRowProps> = ({
   };
 
   const saveEdit = (field: string) => {
-    if (!editValue.trim() && field !== 'value') return;
-    
-    const updates: Partial<Expense> = {};
+    let updates: Partial<Expense> = {};
     
     if (field === 'name') {
-      updates.name = editValue;
+      if (!editedExpense.name.trim()) return;
+      updates = {
+        name: editedExpense.name,
+        currentInstallment: editedExpense.currentInstallment,
+        installments: editedExpense.installments
+      };
     } else if (field === 'value') {
       const numValue = parseFloat(editValue);
       if (isNaN(numValue)) return;
       updates.value = numValue;
     } else if (field === 'tag') {
+      if (!editValue.trim()) return;
       updates.tag = editValue;
     } else if (field === 'bank') {
+      if (!editValue.trim()) return;
       updates.bank = editValue;
     } else if (field === 'date') {
       updates.date = new Date(editValue);
@@ -119,7 +125,73 @@ const EditableExpenseRow: React.FC<EditableExpenseRowProps> = ({
     <>
       <tr className="group hover:bg-muted/50">
         <td className="p-2">
-          {renderEditableField('name', expense.name)}
+          {editingField === 'name' ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Input
+                  value={editedExpense.name}
+                  onChange={(e) => setEditedExpense(prev => ({ ...prev, name: e.target.value }))}
+                  className="h-8 min-w-[100px]"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') saveEdit('name');
+                    if (e.key === 'Escape') cancelEdit();
+                  }}
+                  autoFocus
+                />
+                <Button size="icon" variant="ghost" onClick={() => saveEdit('name')} className="h-6 w-6">
+                  <Check className="h-3 w-3" />
+                </Button>
+                <Button size="icon" variant="ghost" onClick={cancelEdit} className="h-6 w-6">
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+              {editedExpense.recurring && (
+                <div className="flex gap-2 items-center text-xs">
+                  <span>Installment:</span>
+                  <Input
+                    type="number"
+                    min="1"
+                    max={editedExpense.installments}
+                    value={editedExpense.currentInstallment}
+                    onChange={(e) => setEditedExpense(prev => ({ 
+                      ...prev, 
+                      currentInstallment: Math.max(1, Math.min(prev.installments, Number(e.target.value))) 
+                    }))}
+                    className="w-16 h-6 text-xs"
+                  />
+                  <span>/</span>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={editedExpense.installments}
+                    onChange={(e) => setEditedExpense(prev => ({ 
+                      ...prev, 
+                      installments: Math.max(1, Number(e.target.value)) 
+                    }))}
+                    className="w-16 h-6 text-xs"
+                  />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div 
+              className="cursor-pointer hover:bg-muted/50 px-2 py-1 rounded flex items-center gap-1"
+              onClick={() => {
+                setEditingField('name');
+                setEditedExpense(expense);
+              }}
+            >
+              <span className="font-medium">
+                {expense.name}
+                {expense.recurring && (
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    ({expense.currentInstallment}/{expense.installments})
+                  </span>
+                )}
+              </span>
+              <Edit className="h-3 w-3 opacity-0 group-hover:opacity-100" />
+            </div>
+          )}
         </td>
         <td className="p-2">
           {renderEditableField('date', formatDate(expense.date), 'date')}

@@ -20,18 +20,37 @@ export interface Expense {
   value: number;
   recurring: boolean;
   installments: number;
+  currentInstallment: number;
+  recurringGroup: string;
   createdAt: Date;
 }
 
 const Index = () => {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [goalAmount, setGoalAmount] = useState<number>(5000);
+  const [expenses, setExpenses] = useState<Expense[]>(() => {
+    const saved = localStorage.getItem('expenses');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return parsed.map((expense: any) => ({
+        ...expense,
+        date: new Date(expense.date),
+        createdAt: new Date(expense.createdAt)
+      }));
+    }
+    return [];
+  });
+  const [goalAmount, setGoalAmount] = useState<number>(() => {
+    const saved = localStorage.getItem('goalAmount');
+    return saved ? Number(saved) : 5000;
+  });
 
-  const addExpense = (expense: Omit<Expense, 'id' | 'createdAt'>) => {
+  const addExpense = (expense: Omit<Expense, 'id' | 'createdAt' | 'currentInstallment' | 'recurringGroup'>) => {
+    const recurringGroup = Date.now().toString();
     const newExpense: Expense = {
       ...expense,
       id: Date.now().toString(),
-      createdAt: new Date()
+      createdAt: new Date(),
+      currentInstallment: 1,
+      recurringGroup: expense.recurring ? recurringGroup : ''
     };
 
     // Handle recurring expenses and installments
@@ -45,43 +64,112 @@ const Index = () => {
           ...newExpense,
           id: `${Date.now()}-${i}`,
           date: recurringDate,
-          name: i === 0 ? expense.name : `${expense.name} (${i + 1}/${expense.installments})`
+          currentInstallment: i + 1,
+          recurringGroup
         });
       }
-      setExpenses(prev => [...prev, ...recurringExpenses]);
+      setExpenses(prev => {
+        const updated = [...prev, ...recurringExpenses];
+        localStorage.setItem('expenses', JSON.stringify(updated));
+        return updated;
+      });
     } else {
-      setExpenses(prev => [...prev, newExpense]);
+      setExpenses(prev => {
+        const updated = [...prev, newExpense];
+        localStorage.setItem('expenses', JSON.stringify(updated));
+        return updated;
+      });
     }
   };
 
   const deleteExpense = (id: string) => {
-    setExpenses(prev => prev.filter(expense => expense.id !== id));
+    setExpenses(prev => {
+      const updated = prev.filter(expense => expense.id !== id);
+      localStorage.setItem('expenses', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const updateExpense = (id: string, updates: Partial<Expense>, applyToRecurring?: boolean) => {
     setExpenses(prev => {
+      let updated;
       if (applyToRecurring) {
         const expense = prev.find(e => e.id === id);
-        if (expense && expense.recurring) {
-          // Find all related recurring expenses by matching name pattern
-          const baseName = expense.name.includes('(') ? expense.name.split(' (')[0] : expense.name;
-          return prev.map(exp => {
-            const expBaseName = exp.name.includes('(') ? exp.name.split(' (')[0] : exp.name;
-            if (expBaseName === baseName && exp.recurring) {
-              return { ...exp, ...updates };
+        if (expense && expense.recurring && expense.recurringGroup) {
+          // Handle installment count changes
+          if (updates.installments && updates.installments !== expense.installments) {
+            const groupExpenses = prev.filter(e => e.recurringGroup === expense.recurringGroup);
+            const sortedGroup = groupExpenses.sort((a, b) => a.currentInstallment - b.currentInstallment);
+            
+            if (updates.installments < expense.installments) {
+              // Remove excess installments
+              const toKeep = sortedGroup.slice(0, updates.installments);
+              const toRemove = sortedGroup.slice(updates.installments);
+              updated = prev.filter(e => !toRemove.some(r => r.id === e.id))
+                .map(exp => {
+                  if (toKeep.some(k => k.id === exp.id)) {
+                    return { ...exp, ...updates, installments: updates.installments };
+                  }
+                  return exp;
+                });
+            } else {
+              // Add new installments
+              const newInstallments = [];
+              for (let i = expense.installments; i < updates.installments; i++) {
+                const baseExpense = sortedGroup[0];
+                const newDate = new Date(baseExpense.date);
+                newDate.setMonth(newDate.getMonth() + i);
+                
+                newInstallments.push({
+                  ...baseExpense,
+                  ...updates,
+                  id: `${expense.recurringGroup}-${i}`,
+                  date: newDate,
+                  currentInstallment: i + 1,
+                  installments: updates.installments
+                });
+              }
+              updated = prev.map(exp => 
+                exp.recurringGroup === expense.recurringGroup 
+                  ? { ...exp, ...updates, installments: updates.installments }
+                  : exp
+              ).concat(newInstallments);
             }
-            return exp;
-          });
+          } else {
+            // Apply updates to all in group
+            updated = prev.map(exp => 
+              exp.recurringGroup === expense.recurringGroup 
+                ? { ...exp, ...updates }
+                : exp
+            );
+          }
+        } else {
+          updated = prev.map(expense => 
+            expense.id === id ? { ...expense, ...updates } : expense
+          );
         }
+      } else {
+        updated = prev.map(expense => 
+          expense.id === id ? { ...expense, ...updates } : expense
+        );
       }
-      return prev.map(expense => 
-        expense.id === id ? { ...expense, ...updates } : expense
-      );
+      localStorage.setItem('expenses', JSON.stringify(updated));
+      return updated;
     });
   };
 
   const handleImportExpenses = (importedExpenses: Expense[]) => {
-    setExpenses(prev => [...prev, ...importedExpenses]);
+    setExpenses(prev => {
+      const updated = [...prev, ...importedExpenses];
+      localStorage.setItem('expenses', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  // Save goal amount to localStorage when it changes
+  const handleGoalChange = (newGoal: number) => {
+    setGoalAmount(newGoal);
+    localStorage.setItem('goalAmount', newGoal.toString());
   };
 
   const monthlyData = useMemo(() => {
@@ -159,7 +247,7 @@ const Index = () => {
                     monthlyData={monthlyData}
                     categoryData={categoryData}
                     goalAmount={goalAmount}
-                    onGoalChange={setGoalAmount}
+                    onGoalChange={handleGoalChange}
                   />
                 </TabsContent>
               </Tabs>
