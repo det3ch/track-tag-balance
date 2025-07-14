@@ -32,8 +32,8 @@ const ExpenseFiltersComponent: React.FC<ExpenseFiltersProps> = ({
   onFiltersChange,
   expenses
 }) => {
-  const uniqueBanks = [...new Set(expenses.map(e => e.bank))].sort();
-  const uniqueCategories = [...new Set(expenses.map(e => e.tag))].sort();
+  const uniqueBanks = [...new Set(expenses.map(e => e.bank).filter(bank => bank && bank.trim() !== ''))].sort();
+  const uniqueCategories = [...new Set(expenses.map(e => e.tag).filter(tag => tag && tag.trim() !== ''))].sort();
 
   const updateFilter = (key: keyof ExpenseFilters, value: any) => {
     onFiltersChange({
