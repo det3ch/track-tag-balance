@@ -42,6 +42,14 @@ const ExpenseFiltersComponent: React.FC<ExpenseFiltersProps> = ({
     });
   };
 
+  const handleBankChange = (value: string) => {
+    updateFilter('bank', value === 'all' ? '' : value);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    updateFilter('category', value === 'all' ? '' : value);
+  };
+
   const clearFilters = () => {
     onFiltersChange({
       name: '',
@@ -168,12 +176,12 @@ const ExpenseFiltersComponent: React.FC<ExpenseFiltersProps> = ({
           {/* Bank Filter */}
           <div>
             <Label>Bank</Label>
-            <Select value={filters.bank} onValueChange={(value) => updateFilter('bank', value)}>
+            <Select value={filters.bank || 'all'} onValueChange={handleBankChange}>
               <SelectTrigger className="mt-1">
                 <SelectValue placeholder="Select bank" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Banks</SelectItem>
+                <SelectItem value="all">All Banks</SelectItem>
                 {uniqueBanks.map((bank) => (
                   <SelectItem key={bank} value={bank}>
                     {bank}
@@ -186,12 +194,12 @@ const ExpenseFiltersComponent: React.FC<ExpenseFiltersProps> = ({
           {/* Category Filter */}
           <div>
             <Label>Category</Label>
-            <Select value={filters.category} onValueChange={(value) => updateFilter('category', value)}>
+            <Select value={filters.category || 'all'} onValueChange={handleCategoryChange}>
               <SelectTrigger className="mt-1">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 {uniqueCategories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
