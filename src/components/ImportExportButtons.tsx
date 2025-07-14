@@ -19,6 +19,10 @@ const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({ expenses, onI
 
   const exportToProtobuf = async (format: 'binary' | 'text') => {
     try {
+      // Get custom banks and categories from localStorage
+      const customBanks = JSON.parse(localStorage.getItem('customBanks') || '[]');
+      const customCategories = JSON.parse(localStorage.getItem('customCategories') || '[]');
+      
       // Create a simple JSON structure for protobuf-like export
       const exportData = {
         expenses: expenses.map(expense => ({
@@ -35,6 +39,8 @@ const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({ expenses, onI
           installments: expense.installments,
           createdAt: expense.createdAt.toISOString()
         })),
+        customBanks,
+        customCategories,
         exportedAt: new Date().toISOString(),
         version: '1.0'
       };
@@ -107,10 +113,27 @@ const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({ expenses, onI
           }));
 
           onImportExpenses(importedExpenses);
+
+          // Import custom banks and categories if they exist
+          if (data.customBanks && Array.isArray(data.customBanks)) {
+            const existingBanks = JSON.parse(localStorage.getItem('customBanks') || '[]');
+            const newBanks = data.customBanks.filter((bank: any) => 
+              !existingBanks.some((existing: any) => existing.name === bank.name)
+            );
+            localStorage.setItem('customBanks', JSON.stringify([...existingBanks, ...newBanks]));
+          }
+
+          if (data.customCategories && Array.isArray(data.customCategories)) {
+            const existingCategories = JSON.parse(localStorage.getItem('customCategories') || '[]');
+            const newCategories = data.customCategories.filter((category: any) => 
+              !existingCategories.some((existing: any) => existing.name === category.name)
+            );
+            localStorage.setItem('customCategories', JSON.stringify([...existingCategories, ...newCategories]));
+          }
           
           toast({
             title: "Import Successful",
-            description: `Imported ${importedExpenses.length} expenses`,
+            description: `Imported ${importedExpenses.length} expenses${data.customBanks?.length ? `, ${data.customBanks.length} banks` : ''}${data.customCategories?.length ? `, ${data.customCategories.length} categories` : ''}`,
           });
         } else {
           throw new Error('Invalid file format');
