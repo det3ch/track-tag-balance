@@ -2,10 +2,12 @@
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Trash2 } from 'lucide-react';
+import { useCustomCategories } from '@/hooks/useCustomData';
 
 interface CategorySelectorProps {
   tag: string;
@@ -35,7 +37,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
   onTagColorChange,
   onTagIconChange
 }) => {
-  const [customCategories, setCustomCategories] = useState<Array<{name: string, icon: string, color: string}>>([]);
+  const { customCategories, addCategory, deleteCategory } = useCustomCategories();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryIcon, setNewCategoryIcon] = useState('💰');
@@ -66,7 +68,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
       color: newCategoryColor
     };
 
-    setCustomCategories(prev => [...prev, newCategory]);
+    addCategory(newCategory);
     onTagChange(newCategory.name);
     onTagColorChange(newCategory.color);
     onTagIconChange(newCategory.icon);
@@ -75,6 +77,13 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
     setNewCategoryIcon('💰');
     setNewCategoryColor('#3b82f6');
     setShowAddDialog(false);
+  };
+
+  const handleDeleteCategory = () => {
+    deleteCategory(tag);
+    onTagChange('');
+    onTagColorChange('#3b82f6');
+    onTagIconChange('💰');
   };
 
   return (
@@ -114,6 +123,16 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
           </Badge>
         )}
       </div>
+
+      {tag && customCategories.some(c => c.name === tag) && (
+        <button
+          onClick={handleDeleteCategory}
+          className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1"
+        >
+          <Trash2 className="h-3 w-3" />
+          Delete custom category
+        </button>
+      )}
 
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>

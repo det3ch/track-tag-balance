@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,11 +8,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Expense } from '@/pages/Index';
-import { useCustomBanks, useCustomCategories } from '@/hooks/useCustomData';
-import AddBankDialog from './filters/AddBankDialog';
-import AddCategoryDialog from './filters/AddCategoryDialog';
-import FilterSelector from './filters/FilterSelector';
 
 export interface ExpenseFilters {
   name: string;
@@ -35,20 +32,8 @@ const ExpenseFiltersComponent: React.FC<ExpenseFiltersProps> = ({
   onFiltersChange,
   expenses
 }) => {
-  const { customBanks, addBank, deleteBank } = useCustomBanks();
-  const { customCategories, addCategory, deleteCategory } = useCustomCategories();
-  const [showAddBankDialog, setShowAddBankDialog] = useState(false);
-  const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
-
-  const uniqueBanks = [...new Set([
-    ...expenses.map(e => e.bank).filter(bank => bank && bank.trim() !== ''),
-    ...customBanks.map(b => b.name)
-  ])].sort();
-  
-  const uniqueCategories = [...new Set([
-    ...expenses.map(e => e.tag).filter(tag => tag && tag.trim() !== ''),
-    ...customCategories.map(c => c.name)
-  ])].sort();
+  const uniqueBanks = [...new Set(expenses.map(e => e.bank).filter(bank => bank && bank.trim() !== ''))].sort();
+  const uniqueCategories = [...new Set(expenses.map(e => e.tag).filter(tag => tag && tag.trim() !== ''))].sort();
 
   const updateFilter = (key: keyof ExpenseFilters, value: any) => {
     onFiltersChange({
@@ -58,43 +43,11 @@ const ExpenseFiltersComponent: React.FC<ExpenseFiltersProps> = ({
   };
 
   const handleBankChange = (value: string) => {
-    if (value === 'add-new') {
-      setShowAddBankDialog(true);
-      return;
-    }
     updateFilter('bank', value === 'all' ? '' : value);
   };
 
   const handleCategoryChange = (value: string) => {
-    if (value === 'add-new') {
-      setShowAddCategoryDialog(true);
-      return;
-    }
     updateFilter('category', value === 'all' ? '' : value);
-  };
-
-  const handleAddBank = (bank: { name: string; color: string }) => {
-    addBank(bank);
-    updateFilter('bank', bank.name);
-  };
-
-  const handleAddCategory = (category: { name: string; icon: string; color: string }) => {
-    addCategory(category);
-    updateFilter('category', category.name);
-  };
-
-  const handleDeleteBank = (bankName: string) => {
-    deleteBank(bankName);
-    if (filters.bank === bankName) {
-      updateFilter('bank', '');
-    }
-  };
-
-  const handleDeleteCategory = (categoryName: string) => {
-    deleteCategory(categoryName);
-    if (filters.category === categoryName) {
-      updateFilter('category', '');
-    }
   };
 
   const clearFilters = () => {
@@ -221,43 +174,42 @@ const ExpenseFiltersComponent: React.FC<ExpenseFiltersProps> = ({
           </div>
 
           {/* Bank Filter */}
-          <FilterSelector
-            label="Bank"
-            value={filters.bank}
-            options={uniqueBanks}
-            onValueChange={handleBankChange}
-            onDelete={() => handleDeleteBank(filters.bank)}
-            showDeleteButton={filters.bank && customBanks.some(b => b.name === filters.bank)}
-            badge={filters.bank ? { text: filters.bank } : undefined}
-          />
+          <div>
+            <Label>Bank</Label>
+            <Select value={filters.bank || 'all'} onValueChange={handleBankChange}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select bank" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Banks</SelectItem>
+                {uniqueBanks.map((bank) => (
+                  <SelectItem key={bank} value={bank}>
+                    {bank}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Category Filter */}
-          <FilterSelector
-            label="Category"
-            value={filters.category}
-            options={uniqueCategories}
-            onValueChange={handleCategoryChange}
-            onDelete={() => handleDeleteCategory(filters.category)}
-            showDeleteButton={filters.category && customCategories.some(c => c.name === filters.category)}
-            badge={filters.category ? {
-              text: filters.category,
-              icon: customCategories.find(c => c.name === filters.category)?.icon
-            } : undefined}
-          />
+          <div>
+            <Label>Category</Label>
+            <Select value={filters.category || 'all'} onValueChange={handleCategoryChange}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {uniqueCategories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </CardContent>
-
-      <AddBankDialog
-        open={showAddBankDialog}
-        onOpenChange={setShowAddBankDialog}
-        onAddBank={handleAddBank}
-      />
-
-      <AddCategoryDialog
-        open={showAddCategoryDialog}
-        onOpenChange={setShowAddCategoryDialog}
-        onAddCategory={handleAddCategory}
-      />
     </Card>
   );
 };

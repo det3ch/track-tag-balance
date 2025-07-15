@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
+import { useCustomBanks } from '@/hooks/useCustomData';
 
 interface BankSelectorProps {
   bank: string;
@@ -93,18 +98,52 @@ const BankSelector: React.FC<BankSelectorProps> = ({
   onBankChange,
   onBankColorChange
 }) => {
+  const { customBanks, addBank, deleteBank } = useCustomBanks();
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newBankName, setNewBankName] = useState('');
+  const [newBankColor, setNewBankColor] = useState('#3b82f6');
+
+  const allBanks = [...bankPresets, ...customBanks];
+
   const handleBankSelect = (selectedBank: string) => {
-    const preset = bankPresets.find(p => p.name === selectedBank);
+    if (selectedBank === 'add-new') {
+      setShowAddDialog(true);
+      return;
+    }
+
+    const preset = allBanks.find(p => p.name === selectedBank);
     if (preset) {
       onBankChange(preset.name);
       onBankColorChange(preset.color);
     } else {
       onBankChange(selectedBank);
-      // Keep current color if it's a valid color, otherwise use default
       if (!bankColor || bankColor === 'undefined') {
-        onBankColorChange('hsl(221, 83%, 53%)'); // Default blue
+        onBankColorChange('hsl(221, 83%, 53%)');
       }
     }
+  };
+
+  const handleAddBank = () => {
+    if (!newBankName.trim()) return;
+
+    const newBank = {
+      name: newBankName,
+      color: hexToHsl(newBankColor)
+    };
+
+    addBank(newBank);
+    onBankChange(newBank.name);
+    onBankColorChange(newBank.color);
+
+    setNewBankName('');
+    setNewBankColor('#3b82f6');
+    setShowAddDialog(false);
+  };
+
+  const handleDeleteBank = () => {
+    deleteBank(bank);
+    onBankChange('');
+    onBankColorChange('hsl(221, 83%, 53%)');
   };
 
   const handleColorChange = (hexColor: string) => {
@@ -124,7 +163,7 @@ const BankSelector: React.FC<BankSelectorProps> = ({
             <SelectValue placeholder="Select or type bank name" />
           </SelectTrigger>
           <SelectContent>
-            {bankPresets.map((preset) => (
+            {allBanks.map((preset) => (
               <SelectItem key={preset.name} value={preset.name}>
                 <div className="flex items-center gap-2">
                   <div 
@@ -135,6 +174,12 @@ const BankSelector: React.FC<BankSelectorProps> = ({
                 </div>
               </SelectItem>
             ))}
+            <SelectItem value="add-new">
+              <div className="flex items-center gap-2">
+                <span>➕</span>
+                + Add new Bank
+              </div>
+            </SelectItem>
           </SelectContent>
         </Select>
         
@@ -159,6 +204,58 @@ const BankSelector: React.FC<BankSelectorProps> = ({
           className="w-8 h-8 rounded border"
         />
       </div>
+
+      {bank && customBanks.some(b => b.name === bank) && (
+        <button
+          onClick={handleDeleteBank}
+          className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1"
+        >
+          <Trash2 className="h-3 w-3" />
+          Delete custom bank
+        </button>
+      )}
+
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Bank</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="bank-name">Bank Name</Label>
+              <Input
+                id="bank-name"
+                value={newBankName}
+                onChange={(e) => setNewBankName(e.target.value)}
+                placeholder="Enter bank name"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="bank-color-new">Color</Label>
+              <div className="flex items-center gap-2">
+                <input
+                  id="bank-color-new"
+                  type="color"
+                  value={newBankColor}
+                  onChange={(e) => setNewBankColor(e.target.value)}
+                  className="w-8 h-8 rounded border"
+                />
+                <span>{newBankColor}</span>
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button onClick={handleAddBank} className="flex-1">
+                Add Bank
+              </Button>
+              <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
