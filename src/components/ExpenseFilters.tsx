@@ -32,6 +32,7 @@ const ExpenseFiltersComponent: React.FC<ExpenseFiltersProps> = ({
   onFiltersChange,
   expenses
 }) => {
+  // Force cache refresh
   const uniqueBanks = [...new Set(expenses.map(e => e.bank).filter(bank => bank && bank.trim() !== ''))].sort();
   const uniqueCategories = [...new Set(expenses.map(e => e.tag).filter(tag => tag && tag.trim() !== ''))].sort();
 
